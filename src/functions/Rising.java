@@ -1,6 +1,8 @@
 package functions;
 
 import data.DataSeries;
+import data.Scaling;
+import data.ScalingImpl;
 
 /**
  * Определяем разницу между макс и мин значениями на заданном колличестве точек
@@ -28,4 +30,10 @@ public class Rising extends Function {
         return Math.abs(max - min);
     }
 
+    @Override
+    public Scaling getScaling() {
+        ScalingImpl scaling = new ScalingImpl(inputData.getScaling());
+        scaling.setDataOffset(0);
+        return scaling;
+    }
 }

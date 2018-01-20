@@ -1,18 +1,16 @@
 package gui;
 
-import bdf.BdfHeaderData;
+import com.biorecorder.basechart.ChartPanel;
 import dreamrec.ApplicationException;
 import dreamrec.InputEventHandler;
-import dreamrec.RecordingSettings;
-import graph.GraphViewer;
 
 import javax.swing.*;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainWindow extends JFrame {
     private final String TITLE = "BioRecorder";
@@ -20,7 +18,7 @@ public class MainWindow extends JFrame {
     private final Color MENU_BG_COLOR = Color.LIGHT_GRAY;
     private final Color MENU_TEXT_COLOR = Color.BLACK;
 
-    protected GraphViewer graphViewer;
+    protected ChartPanel chartPanel;
     private JToolBar menu = new JToolBar();
 
     private GuiConfig guiConfig;
@@ -37,6 +35,8 @@ public class MainWindow extends JFrame {
                 close();
             }
         });
+
+
         setTitle(TITLE);
         getContentPane().setBackground(BG_COLOR);
         menu.setBackground(MENU_BG_COLOR);
@@ -57,15 +57,36 @@ public class MainWindow extends JFrame {
         System.exit(0);
     }
 
-    public void setGraphViewer(GraphViewer graphViewer) {
-        if (this.graphViewer != null) {
-            remove(this.graphViewer);
+    public void setChartPanel(ChartPanel chartPanel) {
+        List<Component> menuComponents = getAllComponents(menu);
+        if (this.chartPanel != null) {
+            removeKeyListener(this.chartPanel);
+            remove(this.chartPanel);
+            for (Component c : menuComponents) {
+                c.removeKeyListener(this.chartPanel);
+            }
         }
-        this.graphViewer = graphViewer;
-        add(graphViewer, BorderLayout.CENTER);
-        graphViewer.requestFocusInWindow();
+        this.chartPanel = chartPanel;
+        addKeyListener(chartPanel);
+        for (Component c : menuComponents) {
+            c.setFocusable(false);
+            c.addKeyListener(chartPanel);
+        }
+        add(chartPanel, BorderLayout.CENTER);
         validate();
     }
+
+    public static List<Component> getAllComponents(final Container c) {
+        Component[] comps = c.getComponents();
+        List<Component> compList = new ArrayList<Component>();
+        for (Component comp : comps) {
+            compList.add(comp);
+            if (comp instanceof Container)
+                compList.addAll(getAllComponents((Container) comp));
+        }
+        return compList;
+    }
+
 
     private void showMessage(String s) {
         JOptionPane.showMessageDialog(this, s);
@@ -81,7 +102,6 @@ public class MainWindow extends JFrame {
         int height = dimension.height;
         return new Dimension(width, height);
     }
-
 
     private void formMenu() {
         JMenu fileMenu = new JMenu("File");
@@ -123,6 +143,7 @@ public class MainWindow extends JFrame {
         });
         add(menu, BorderLayout.NORTH);
     }
+
 
     private File chooseFileToRead() {
         String[] fileExtensions = eventHandler.getFileExtensions();

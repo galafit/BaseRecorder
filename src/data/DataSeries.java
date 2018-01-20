@@ -1,8 +1,8 @@
 package data;
 
 /**
- *  Scaling gives us actual dependency dataValue(indexValue)
- *  based on the given  dependency of integers: data(index)
+ *  Scaling gives us actual  dataValue(indexValue)
+ *  based on the given integers: data(index)
  *
  *  indexValue = index * stepInterval + startOffset
  *  where:
