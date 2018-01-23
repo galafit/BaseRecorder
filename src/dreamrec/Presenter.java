@@ -3,7 +3,9 @@ package dreamrec;
 import com.biorecorder.basechart.ChartConfig;
 import com.biorecorder.basechart.ChartPanel;
 import com.biorecorder.basechart.chart.config.traces.LineTraceConfig;
+import com.biorecorder.basechart.chart.scales.Unit;
 import com.biorecorder.basechart.data.FloatSeries;
+import com.biorecorder.basechart.data.GroupingType;
 import com.biorecorder.basechart.data.XYData;
 import data.DataSeries;
 import filters.FilterBandPass_Alfa;
@@ -91,6 +93,7 @@ public class Presenter implements  ControllerListener {
     private ChartConfig rem(RemDataStore remDataStore) {
         ChartConfig config = new ChartConfig(true);
         config.addPreviewGroupingInterval( 750 * 1000 / 50);
+        config.getPreviewConfig().getXConfig(0).setTickStep(30, Unit.MINUTE);
         int eogCutOffPeriod = 10; //sec. to remove steady component (cutoff_frequency = 1/cutoff_period )
         DataSeries eog1Full = remDataStore.getEog1Data();
         DataSeries eog2Full = remDataStore.getEog2Data();
@@ -101,17 +104,17 @@ public class Presenter implements  ControllerListener {
         }
         DataSeries accMovement = remDataStore.getAccMovementData();
         DataSeries isSleep = remDataStore.isSleep();
-        config.addTrace(new LineTraceConfig(), toChartData(eog1), "EOG");
+        config.addTrace(new LineTraceConfig(), toChartData(eog1), "EOG", eog1.getScaling().getDataDimension());
         if(eog2 != null) {
-            config.addTrace(new LineTraceConfig(), toChartData(eog2), "EOG1");
+            config.addTrace(new LineTraceConfig(LineTraceConfig.VERTICAL_LINES), toChartData(eog2), "EOG1", eog2.getScaling().getDataDimension());
         }
 
         DataSeries alfa = new FilterHiPass(new FilterBandPass_Alfa(eog1Full), 2);
         config.addChartStack(6);
-        config.addTrace(new LineTraceConfig(), toChartData(alfa), "Alpha");
+        config.addTrace(new LineTraceConfig(LineTraceConfig.VERTICAL_LINES), toChartData(alfa), "Alpha", alfa.getScaling().getDataDimension());
 
         config.addChartStack(3);
-        config.addTrace(new LineTraceConfig(), toChartData(accMovement), "Accelerometer");
+        config.addTrace(new LineTraceConfig(LineTraceConfig.STEP), toChartData(accMovement), "Accelerometer", accMovement.getScaling().getDataDimension());
         config.addTrace(new LineTraceConfig(), toChartData(new Constant(accMovement, remDataStore.getAccMovementLimit())), "");
 
         DataSeries eogDiff = eog1Full;
@@ -121,7 +124,9 @@ public class Presenter implements  ControllerListener {
         FilterDerivativeRem eogDerivativeRem =  new FilterDerivativeRem(eogDiff);
         DataSeries eogDerivativeRemAbs =  new Abs(eogDerivativeRem);
 
-        config.addPreviewTrace(new LineTraceConfig(), toChartData(eogDerivativeRemAbs), "Rem");
+        XYData remData = toChartData(eogDerivativeRemAbs);
+       // remData.setYGroupingType(GroupingType.MAX);
+        config.addPreviewTrace(new LineTraceConfig(LineTraceConfig.VERTICAL_LINES), remData, "Rem", eogDerivativeRemAbs.getScaling().getDataDimension());
        // chartPanel.addPreviewPanel(2, false);
        // chartPanel.addPreview(eogDerivativeRemAbs, CompressionType.MAX);
        // chartPanel.addPreview(isSleep, GraphType.BOOLEAN, CompressionType.BOOLEAN);
