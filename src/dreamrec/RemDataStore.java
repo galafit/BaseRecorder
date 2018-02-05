@@ -5,10 +5,7 @@ import bdf.BdfProvider;
 import bdf.BdfRecordsJoiner;
 import data.*;
 import filters.FilterDerivativeRem;
-import functions.BooleanAND;
-import functions.Composition;
-import functions.Rising;
-import functions.Trigger;
+import functions.*;
 import prefilters.PreFilter;
 
 import java.util.ArrayList;
@@ -170,8 +167,8 @@ public class RemDataStore  implements DataStoreListener {
         return accMovement;
     }
 
-    private DataSeries isNotMove() {
-        return new Trigger(getAccMovementData(), accMovementLimit);
+    public DataSeries isMove() {
+        return new BooleanNOT(new Trigger(getAccMovementData(), accMovementLimit));
     }
 
     private DataSeries isEogOk() {
@@ -182,7 +179,7 @@ public class RemDataStore  implements DataStoreListener {
 public DataSeries isSleep() {
         BooleanAND isSleep = new BooleanAND();
         try {
-            DataCompressor isNotMove = new DataCompressor(isNotMove(), CompressionType.BOOLEAN);
+            DataCompressor isNotMove = new DataCompressor(isMove(), CompressionType.BOOLEAN);
             double samplingInterval = 1;
             if(isEogOk().getScaling() != null) {
                 samplingInterval = isEogOk().getScaling().getSamplingInterval();
